@@ -41,13 +41,15 @@ function remove_any_extension(){
   read -p "Files with what extensions would you like to remove?" ext
   find . -name "*.$ext" | xargs rm
 }
-
+function encrypted_files(){
+  find . -name "*.enc" | xargs echo
+}
 #clear_logs
 #check_haskell_errors
 #check_uncommited_changes
 #log_todo
-remove_any_extension
-
+#remove_any_extension
+encrypted_files
 
 
 
