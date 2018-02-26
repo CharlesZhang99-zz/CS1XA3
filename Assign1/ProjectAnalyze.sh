@@ -36,21 +36,42 @@ function check_haskell_errors(){
 function remove_logs(){
   find . -name "*.log" | xargs rm
 }
+
 #custom feature 2. This removes any file with the extension the user inputs
 function remove_any_extension(){
   read -p "Files with what extensions would you like to remove?" ext
   find . -name "*.$ext" | xargs rm
 }
+
 function encrypted_files(){
   find . -name "*.enc" | xargs echo
+}
+
+function check_permission(){
+  read -p "Enter name of file you would like to check permissions to " filen
+  #cite for permissions check: https://askubuntu.com/questions/152001/how-can-i-get-octal-file-permissions-from-command-line
+  pm=$(stat -c "%a %n" $filen)
+  
+  #cite for indexing: http://landoflinux.com/linux_bash_scripting_substring_tests.html
+  pm1=${pm:0:1}
+  pm2=${pm:1:1}
+  pm3=${pm:2:2}
+
+  #cite for dictionary: https://www.artificialworlds.net/blog/2012/10/17/bash-associative-array-examples/
+  declare -A permission_num
+  permission_num=( ["0"]="do nothing. No permissions" ["1"]="execute" ["2"]="write" ["3"]="write & execute" ["4"]="read" ["5"]="read & execute" ["6"]="read & write" ["7"]="read, write, & execute")
+  
+  echo "Owner can ${permission_num[$pm1]}"
+  echo "Group can ${permission_num[$pm2]}"
+  echo "Others can ${permission_num[$pm3]}" 
 }
 #clear_logs
 #check_haskell_errors
 #check_uncommited_changes
 #log_todo
 #remove_any_extension
-encrypted_files
-
+#encrypted_files
+check_permission
 
 
 
