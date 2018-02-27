@@ -65,8 +65,8 @@ function check_permission(){
   
   echo "Owner can ${permission_num[$pm1]}"
   echo "Group can ${permission_num[$pm2]}"
-  echo "Others can ${permission_num[$pm3]}" 
-  #echo $pm3
+  #I don't know why this echo doesnt output value in the dicto
+  echo "Others can ${permission_num[$pm2]}"
 }
 
 function shitty_compression(){
@@ -76,8 +76,26 @@ function shitty_compression(){
     sed -i 's/bonjour/hello/g' txt1.txt
   fi
 }
+
+conti=True
+function start_menu(){
+  if [[ $conti ]];then
+    echo "Here is a list of functions you can call:"
+    echo "1. check_up_to_date"
+    echo "2. check_uncommited_changes"
+    echo "3. log_todo"
+    echo "4. check_haskell_errors"
+    echo "5. remove_logs"
+    echo "6. remove_any_extension"
+    echo "7. encrypted_files"
+    echo "8. check_permission"
+    read -p "Enter name of function you would like to run " fun
+    $fun
+  fi
+} 
+start_menu
 #clear_logs
-check_haskell_errors
+#check_haskell_errors
 #check_uncommited_changes
 #log_todo
 #remove_any_extension
