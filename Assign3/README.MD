@@ -12,6 +12,6 @@
 - Divided into modules
 
 ### Citation
-- For simplifications, I used github.com/wengy12 code
-- My ExprParser is largely inspired by https://github.com/chenc118 and github.com/deleeuwj1
+- For simplifications, I used  https://github.com/wengy12 code
+- My ExprParser is largely inspired by https://github.com/chenc118 and  https://github.com/deleeuwj1
 - My partDiff is inspired by https://github.com/chenc118
