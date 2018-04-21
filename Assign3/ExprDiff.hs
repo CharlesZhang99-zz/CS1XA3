@@ -77,53 +77,53 @@ instance (Eq a, Floating a) => DiffExpr a where
   partDiff t (NatExp x) = Mult (NatExp x) (partDiff t x)
 
 
-  -- ^ Just const
+
   simplify vrs (Const x) = (Const x)
  
-  -- ^ Substitute what we have
+
   simplify vrs (Var x) = case Map.lookup x vrs of
                        Just v  -> (Const v)
                        Nothing -> (Var x)
  
-  -- ^ Simplify addition
+
   simplify vrs (Add a b) =
     case (simplify vrs a, simplify vrs b) of
-      -- ^ killing zeros
+
       (Const 0, x) -> simplify vrs x
       (x, Const 0) -> simplify vrs x
  
-      -- ^ add two numbers
+
       (Const x, Const y) -> Const (x+y)
  
-      -- ^ move all const to the right
+
       (Const x, y) -> (Add (simplify vrs y) (Const x))
  
-      -- ^ adds all consts together
+
       (Add z (Const y), Const x) -> simplify vrs (Add (simplify vrs z) (Const (x+y)))
  
-      -- ^ case we dont have any consts
+
       (x, y) -> (Add x y)
  
  
-  -- Simplify multiplication
+
   simplify vrs (Mult a b) =
     case (simplify vrs a, simplify vrs b) of
-      -- ^ multiply by zero
+
       (Const 0, y) -> (Const 0)
       (y, Const 0) -> (Const 0)
  
-      -- ^ multiply by 1
+  
       (Const 1, y) -> (simplify vrs y)
       (y, Const 1) -> (simplify vrs y)
  
-      -- ^ multiply two numbers
+   
       (Const x, Const y) -> Const (x*y)
  
-      -- ^ get numbers to the right
+  
       (Const x, y) -> (Mult (simplify vrs y) (Const x))
  
-      -- ^ multiply the numbers
+
       (Mult z (Const y), Const x) -> simplify vrs (Mult (simplify vrs z) (Const (x*y)))
  
-      -- ^ if we left no constants
+
       (x, y) -> (Mult x y)
