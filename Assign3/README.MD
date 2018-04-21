@@ -13,4 +13,5 @@
 
 ### Citation
 - For simplifications, I used github.com/wengy12 code
-- My ExprParser is largely inspired by github.com/ibrahamq1 and github.com/deleeuwj1
+- My ExprParser is largely inspired by https://github.com/chenc118 and github.com/deleeuwj1
+- My partDiff is inspired by https://github.com/chenc118
