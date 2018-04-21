@@ -16,40 +16,6 @@ module ExprDiff where
 import ExprType
 
 import qualified Data.Map as Map
-{-
-  Class diffExpr:
-    Differentiable Expressions
-
-  ----------------------------------------------
-
-  The DiffExpr class cointains methods over the 
-  Expr datatype tht helps with making and
-  evaluating diferentiable expressions.
-
-  ----------------------------------------------
-  
-  Methods:
-    eval: Takes a dictionary of variable-identifiers
-          and values, and uses it to compute the Expr.
-
-    simplify: Takes a dictionary (complete or incomplete)
-              and uses it to reduce Expr as much as
-              possible.
-
-              e1 = x + y
-              e2 = y + x
-              e1 == e2
-
-              Add (Add (Var "x") (Const 1) (Add (Const 2) (Var "y")))
-              => Add (Const 3) (Add (Var "x") (Var "y"))
-    partDiff: Given a var identifier, differentiate
-          in terms of that identifier
-    Default Methods:
-      !+,!*,var,val: are function wrappers for Expr
-                     constructors that perform
-                     additional simplification
--}
-
 
 -- * core functions
 class DiffExpr a where
@@ -111,75 +77,53 @@ instance (Eq a, Floating a) => DiffExpr a where
   partDiff t (NatExp x) = Mult (NatExp x) (partDiff t x)
 
 
-  simplify vrs (Const x) = Const x
-  simplify vrs (Mult (Const 0) e1) = Const 0
-  simplify vrs (Mult e1 (Const 0)) = Const 0
-  simplify vrs (Mult e1 (Const 1)) = simplify vrs e1
-  simplify vrs (Mult (Const 1) e1) =simplify vrs e1
-  simplify vrs (Add e1 (Const 0)) = simplify vrs e1
-  simplify vrs (Add (Const 0) e1) = simplify vrs e1
-  simplify vrs (Exp (e1) (Const 0)) = Const 1
-  simplify vrs (Exp (Const 0) e1) = Const 0 
-
-
-  simplify vrs (Var x) = case Map.lookup x vrs of 
-                          Just v -> Const v
-                          Nothing -> Var x
-
-  simplify vrs (Add e1 (Var x)) = case Map.lookup x vrs of 
-                                    Just v ->  simplify vrs (Add (Const v) (simplify vrs e1))
-                                    Nothing -> Add (simplify vrs e1) (Var x)
-
-  simplify vrs (Add (Var x) e1) = case Map.lookup x vrs of 
-                                    Just v ->  simplify vrs (Add (simplify vrs e1) (Const v) )
-                                    Nothing -> Add (Var x) (simplify vrs e1)
-
-
-  simplify vrs (Mult (Var x) e1) = case Map.lookup x vrs of 
-                                    Just v ->  simplify vrs (Mult (simplify vrs e1) (Const v) )
-                                    Nothing -> Mult (Var x) (simplify vrs e1)                
-
-  simplify vrs (Mult e1 (Var x)) = case Map.lookup x vrs of 
-                                    Just v ->  simplify vrs (Mult (Const v) (simplify vrs e1) )
-                                    Nothing -> Mult (simplify vrs e1) (Var x) 
-
-
-  simplify vrs (Add e1 e2) = case ((simplify vrs e1),(simplify vrs e2)) of 
-                             (Const x , Const y) -> Const (x + y)
-                             _ -> Add (simplify vrs e1)  (simplify vrs e2)
-  
-
-
-  simplify vrs (Mult e1 e2) = case ((simplify vrs e1) ,(simplify vrs e2)) of 
-                             (Const x,Const y)->(Const (x*y) ) 
-                             _ -> Mult (simplify vrs e1)  (simplify vrs e2)
-
-
-
-  simplify vrs (Exp (Var x) e1) = case Map.lookup x vrs of 
-                                    Just v ->  simplify vrs (Exp (Const v) (simplify vrs e1) )
-                                    Nothing -> Exp (Var x) (simplify vrs e1)                
-
-  simplify vrs (Exp e1 (Var x)) = case Map.lookup x vrs of 
-                                    Just v ->  simplify vrs (Exp (simplify vrs e1)  (Const v) )
-                                    Nothing -> Exp (simplify vrs e1) (Var x)
-  simplify vrs (Cos (Var x)) = case Map.lookup x vrs of 
-                                    Just v ->  simplify vrs (Cos (Const v) )
-                                    Nothing -> Cos (Var x) 
-  simplify vrs (Sin (Var x)) = case Map.lookup x vrs of 
-                                    Just v ->  simplify vrs (Sin (Const v) )
-                                    Nothing -> Sin (Var x)
-
-  simplify vrs (Exp e1 e2) = case ((simplify vrs e1) ,(simplify vrs e2)) of 
-                             (Const x,Const y)->(Const (x**y) ) 
-                             _ -> Exp (simplify vrs e1)  (simplify vrs e2)
-  simplify vrs (Cos e1) = case (simplify vrs e1) of 
-                             Const x -> Const (cos x)
-                             _-> Cos (simplify vrs e1)
-  simplify vrs (Sin e1) = case (simplify vrs e1) of 
-                             Const x -> Const (sin x)
-                             _-> Sin (simplify vrs e1)
-
-  simplify vrs (NatExp (Var x)) = case Map.lookup x vrs of 
-                                    Just v ->  simplify vrs (NatExp (Const v) )
-                                    Nothing -> NatExp (Var x) 
+  -- ^ Just const
+  simplify vrs (Const x) = (Const x)
+ 
+  -- ^ Substitute what we have
+  simplify vrs (Var x) = case Map.lookup x vrs of
+                       Just v  -> (Const v)
+                       Nothing -> (Var x)
+ 
+  -- ^ Simplify addition
+  simplify vrs (Add a b) =
+    case (simplify vrs a, simplify vrs b) of
+      -- ^ killing zeros
+      (Const 0, x) -> simplify vrs x
+      (x, Const 0) -> simplify vrs x
+ 
+      -- ^ add two numbers
+      (Const x, Const y) -> Const (x+y)
+ 
+      -- ^ move all const to the right
+      (Const x, y) -> (Add (simplify vrs y) (Const x))
+ 
+      -- ^ adds all consts together
+      (Add z (Const y), Const x) -> simplify vrs (Add (simplify vrs z) (Const (x+y)))
+ 
+      -- ^ case we dont have any consts
+      (x, y) -> (Add x y)
+ 
+ 
+  -- Simplify multiplication
+  simplify vrs (Mult a b) =
+    case (simplify vrs a, simplify vrs b) of
+      -- ^ multiply by zero
+      (Const 0, y) -> (Const 0)
+      (y, Const 0) -> (Const 0)
+ 
+      -- ^ multiply by 1
+      (Const 1, y) -> (simplify vrs y)
+      (y, Const 1) -> (simplify vrs y)
+ 
+      -- ^ multiply two numbers
+      (Const x, Const y) -> Const (x*y)
+ 
+      -- ^ get numbers to the right
+      (Const x, y) -> (Mult (simplify vrs y) (Const x))
+ 
+      -- ^ multiply the numbers
+      (Mult z (Const y), Const x) -> simplify vrs (Mult (simplify vrs z) (Const (x*y)))
+ 
+      -- ^ if we left no constants
+      (x, y) -> (Mult x y)
