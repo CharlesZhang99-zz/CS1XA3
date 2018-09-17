@@ -1,0 +1,5 @@
+[1 of 1] Compiling Main             ( test2.hs, nothing )
+[1 of 1] Compiling Main             ( test1.hs, nothing )
+
+test1.hs:3:1:
+    parse error (possibly incorrect indentation or mismatched brackets)
